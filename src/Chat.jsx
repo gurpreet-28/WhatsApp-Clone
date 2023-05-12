@@ -1,20 +1,46 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import "./Chat.css";
 import { Avatar, IconButton } from "@mui/material";
+import { useParams } from "react-router-dom";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import AttachFileOutlinedIcon from "@mui/icons-material/AttachFileOutlined";
 import InsertEmoticonOutlinedIcon from "@mui/icons-material/InsertEmoticonOutlined";
 import MicOutlinedIcon from "@mui/icons-material/MicOutlined";
+import db from "./firebase";
 
-function Chat() {
+const Chat = () => {
+  const [seed, setSeed] = useState("");
+  const [input, setInput] = useState("");
+  const { roomId } = useParams();
+  const [roomName, setRoomName] = useState("");
+
+  const sendMessage = (e) => {
+    e.preventDefault();
+
+    setInput("");
+  };
+
+  useEffect(() => {
+    if (roomId) {
+      db.collection("rooms")
+        .doc(roomId)
+        .onSnapshot((snapshot) => {
+          setRoomName(snapshot.data().name);
+        });
+    }
+  }, [roomId]);
+
+  useEffect(() => {
+    setSeed(Math.floor(Math.random() * 5000));
+  }, []);
+
   return (
     <div className="chat">
       <div className="chat_header">
-        <Avatar />
-
+        <Avatar src={`https://avatars.dicebear.com/api/human/${seed}.svg`} />
         <div className="chat_headerInfo">
-          <h3>Room Name</h3>
+          <h3>{roomName}</h3>
           <p>Last Seen at...</p>
         </div>
 
@@ -32,23 +58,32 @@ function Chat() {
       </div>
 
       <div className="chat_body">
-        <p className={`chat_message chat_reciever`}>
+        <p className={`chat_message ${true && "chat_reciever"}`}>
           <span className="chat_name">Jimmy</span>
           <span>Hello</span>
-          <span className="chat_timestamp">12-05-2023</span>
+          <span className="chat_timestamp">11:21 PM</span>
         </p>
       </div>
 
       <div className="chat_footer">
         <InsertEmoticonOutlinedIcon />
         <form action="/">
-          <input type="text" placeholder="Type a message" />
-          <button type="submit">Send a message</button>
+          <input
+            value={input}
+            onChange={(e) => {
+              setInput(e.target.value);
+            }}
+            type="text"
+            placeholder="Type a message"
+          />
+          <button onClick={sendMessage} type="submit">
+            Send a message
+          </button>
         </form>
         <MicOutlinedIcon />
       </div>
     </div>
   );
-}
+};
 
 export default Chat;

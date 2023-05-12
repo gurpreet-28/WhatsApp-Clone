@@ -1,16 +1,22 @@
 import React from "react";
 import "./App.css";
-import Chat from "./components/Chat";
-import Sidebar from "./components/Sidebar";
+import Chat from "./Chat";
+import Sidebar from "./Sidebar";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 const App = () => {
   return (
-    <div className="app">
-      <div className="app_body">
-        <Sidebar />
-        <Chat />
+    <BrowserRouter>
+      <div className="app">
+        <div className="app_body">
+          <Sidebar />
+          <Routes>
+            <Route path="/rooms/:roomId" element={<Chat />} />
+            <Route path="/" />
+          </Routes>
+        </div>
       </div>
-    </div>
+    </BrowserRouter>
   );
 };
 
