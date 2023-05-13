@@ -8,15 +8,26 @@ import AttachFileOutlinedIcon from "@mui/icons-material/AttachFileOutlined";
 import InsertEmoticonOutlinedIcon from "@mui/icons-material/InsertEmoticonOutlined";
 import MicOutlinedIcon from "@mui/icons-material/MicOutlined";
 import db from "./firebase";
+import firebase from "firebase/compat/app";
+import "firebase/compat/firestore";
+import { useStateValue } from "./StateProvider";
 
 const Chat = () => {
+  const [{ user }, dispatch] = useStateValue();
   const [seed, setSeed] = useState("");
   const [input, setInput] = useState("");
   const { roomId } = useParams();
   const [roomName, setRoomName] = useState("");
+  const [messages, setMessages] = useState([]);
 
   const sendMessage = (e) => {
     e.preventDefault();
+
+    db.collection("rooms").doc(roomId).collection("messages").add({
+      message: input,
+      name: user.displayName,
+      timestamp: firebase.firestore.FieldValue.serverTimestamp(),
+    });
 
     setInput("");
   };
@@ -28,6 +39,14 @@ const Chat = () => {
         .onSnapshot((snapshot) => {
           setRoomName(snapshot.data().name);
         });
+
+      db.collection("rooms")
+        .doc(roomId)
+        .collection("messages")
+        .orderBy("timestamp", "asc")
+        .onSnapshot((snapshot) =>
+          setMessages(snapshot.docs.map((doc) => doc.data()))
+        );
     }
   }, [roomId]);
 
@@ -41,7 +60,12 @@ const Chat = () => {
         <Avatar src={`https://avatars.dicebear.com/api/human/${seed}.svg`} />
         <div className="chat_headerInfo">
           <h3>{roomName}</h3>
-          <p>Last Seen at...</p>
+          <p>
+            last seen{" "}
+            {new Date(
+              messages[messages.length - 1]?.timestamp?.toDate()
+            ).toUTCString()}
+          </p>
         </div>
 
         <div className="chat_headerRight">
@@ -58,11 +82,23 @@ const Chat = () => {
       </div>
 
       <div className="chat_body">
-        <p className={`chat_message ${true && "chat_reciever"}`}>
-          <span className="chat_name">Jimmy</span>
-          <span>Hello</span>
-          <span className="chat_timestamp">11:21 PM</span>
-        </p>
+        {messages.map((message) => {
+          return (
+            <p
+              className={`chat_message ${
+                message.name === user.displayName && "chat_reciever"
+              }`}
+            >
+              <span className="chat_name">{message.name}</span>
+              <span>{message.message}</span>
+              <span className="chat_timestamp">
+                {message.timestamp
+                  ? new Date(message.timestamp.toDate()).toUTCString()
+                  : new Date(message.timestamp).toUTCString()}
+              </span>
+            </p>
+          );
+        })}
       </div>
 
       <div className="chat_footer">

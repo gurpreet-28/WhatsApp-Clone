@@ -7,9 +7,11 @@ import DonutLargeIcon from "@mui/icons-material/DonutLarge";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import SearchOutlinedIcon from "@mui/icons-material/SearchOutlined";
 import db from "./firebase";
+import { useStateValue } from "./StateProvider";
 
 const Sidebar = () => {
   const [rooms, setRooms] = useState([]);
+  const [{ user }, dispatch] = useStateValue();
 
   useEffect(() => {
     db.collection("rooms").onSnapshot((snapshot) =>
@@ -26,7 +28,7 @@ const Sidebar = () => {
   return (
     <div className="sidebar">
       <div className="sidebar_header">
-        <Avatar src="https://images.unsplash.com/photo-1503023345310-bd7c1de61c7d?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=465&q=80" />
+        <Avatar src={user?.photoURL} />
         <div className="sidebar_headerRight">
           <IconButton>
             <DonutLargeIcon />
